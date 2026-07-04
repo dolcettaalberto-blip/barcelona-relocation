@@ -214,8 +214,8 @@
     var marker = L.marker([s.lat, s.lng], {
       icon: L.divIcon({
         className: "",
-        html: '<span class="school-pin ' + cls + '">' + glyph + "</span>",
-        iconSize: [16, 16], iconAnchor: [8, 8]
+        html: '<div class="school-badge ' + cls + '">' + glyph + "</div>",
+        iconSize: [22, 28], iconAnchor: [11, 28], popupAnchor: [0, -24]
       }),
       zIndexOffset: s.preferred ? 500 : 0,
       keyboard: true,
@@ -540,7 +540,7 @@
     schoolMarkers.forEach(function (item) {
       var el = item.marker.getElement();
       if (!el) return;
-      var pin = el.querySelector(".school-pin");
+      var pin = el.querySelector(".school-badge");
       var fits = fitsSchool(item.school);
       if (fits) schoolFits++;
       pin.classList.toggle("dim", !fits);

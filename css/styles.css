@@ -182,11 +182,27 @@ input[type="range"]:focus-visible { outline: 3px solid var(--accent); outline-of
   font: 650 1rem var(--display);
 }
 .hq-icon.hq-danone { background: var(--accent-deep); color: var(--paper); }
-.school-pin { font-size: 15px; line-height: 1; text-shadow: 0 1px 2px rgba(255,255,255,0.9); transition: opacity 0.15s; }
-.school-pin.intl { color: var(--accent-deep); }
-.school-pin.bili { color: var(--band-1); }
-.school-pin.pref { color: var(--gold); font-size: 20px; text-shadow: 0 0 2px var(--accent-deep), 0 1px 2px rgba(255,255,255,0.9); }
-.school-pin.dim { opacity: 0.25; }
+/* Schools get a pointed map-pin/tag shape so they read differently from the
+   round area dots. Color = type; glyph repeats it for color-blind safety. */
+.school-badge {
+  width: 22px; height: 28px;
+  display: grid; place-items: center;
+  padding-bottom: 7px;
+  clip-path: polygon(0 0, 100% 0, 100% 66%, 50% 100%, 0 66%);
+  color: #fff; font-size: 11px; line-height: 1;
+  transition: opacity 0.15s;
+}
+.school-badge.intl { background: var(--accent-deep); }
+.school-badge.bili { background: var(--band-1); }
+.school-badge.pref { background: var(--gold); font-size: 13px; }
+.school-badge.dim { opacity: 0.25; }
+.key-pin {
+  display: inline-block; width: 11px; height: 14px; vertical-align: -3px;
+  clip-path: polygon(0 0, 100% 0, 100% 66%, 50% 100%, 0 66%);
+}
+.key-pin.intl { background: var(--accent-deep); }
+.key-pin.bili { background: var(--band-1); }
+.key-pin.pref { background: var(--gold); }
 .leaflet-container { font-family: var(--body); }
 .leaflet-popup-content-wrapper { border-radius: 0; clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px); background: var(--card); color: var(--ink); }
 .leaflet-popup-content { margin: 12px 14px; font-size: 0.8rem; }
