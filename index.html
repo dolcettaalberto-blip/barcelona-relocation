@@ -25,7 +25,7 @@
     </svg>
     <div>
       <h1>Barcelona Family Relocation Explorer</h1>
-      <p class="tagline">150 m² · one school-age child · anchor: Glovo HQ, Poblenou · 3 office days/week</p>
+      <p class="tagline">150 m² · one school-age child · anchors: Glovo HQ (Poblenou) + Danone HQ (Francesc Macià) · bike-first · 3 office days/week</p>
     </div>
   </div>
 </header>
@@ -39,6 +39,13 @@
     <div class="control slider-control">
       <label for="budget-school">School budget / year <output id="budget-school-out" for="budget-school">€18,000</output></label>
       <input type="range" id="budget-school" min="6000" max="30000" step="500" value="18000">
+    </div>
+    <div class="control commute-mode">
+      <span class="control-caption" id="commute-mode-caption">Commute mode</span>
+      <div class="seg" role="group" aria-labelledby="commute-mode-caption">
+        <button type="button" id="mode-bike" class="seg-btn" aria-pressed="true" title="Bike — the family's main mode">🚲 Bike</button>
+        <button type="button" id="mode-mixed" class="seg-btn" aria-pressed="false" title="Mixed transit/car, off-peak-ish">Mixed</button>
+      </div>
     </div>
     <div class="control fee-mode">
       <span class="control-caption" id="fee-mode-caption">School fee basis</span>
@@ -70,13 +77,14 @@
           <span class="ramp-labels"><span>€3.2k</span><span>€6.3k</span></span>
         </div>
         <div class="legend-block">
-          <span class="legend-title">Commute to Glovo</span>
+          <span class="legend-title">Commute band (avg of both HQs)</span>
           <span class="band-chip band-1">≤20 min</span>
           <span class="band-chip band-2">21–40</span>
           <span class="band-chip band-3">&gt;40</span>
         </div>
         <div class="legend-block">
           <span class="legend-title">Schools</span>
+          <span class="school-key pref">★ preferred</span>
           <span class="school-key intl">▲ international</span>
           <span class="school-key bili">● bilingual</span>
         </div>
@@ -97,7 +105,8 @@
             <th scope="col" class="num"><button type="button" data-sort="pricePerSqm">€/m²</button></th>
             <th scope="col" class="num"><button type="button" data-sort="price150sqm">150 m² price</button></th>
             <th scope="col" class="num"><button type="button" data-sort="rent">Rent /mo</button></th>
-            <th scope="col" class="num"><button type="button" data-sort="commute">Commute</button></th>
+            <th scope="col" class="num"><button type="button" data-sort="commuteGlovo">Glovo</button></th>
+            <th scope="col" class="num"><button type="button" data-sort="commuteDanone">Danone</button></th>
             <th scope="col">Vibe</th>
             <th scope="col" class="num"><button type="button" data-sort="green">Green</button></th>
             <th scope="col" class="num"><button type="button" data-sort="bike">Bike</button></th>
@@ -110,7 +119,7 @@
         <tbody id="tbody-suburbs"></tbody>
       </table>
     </div>
-    <p class="table-footnote">Fit score = school access ×3 + green + bike + safety − weekly commute hours (round trips, 3 office days) ×1.2. Higher is better. Out-of-city areas carry no editorial ratings, so their score reflects commute only.</p>
+    <p class="table-footnote">Fit score = school access ×3 + green + bike + safety − weekly commute hours ×1.2 (round trips, 3 office days, commute = average of Glovo and Danone in the selected mode — bike by default). Higher is better. Out-of-city areas carry no editorial ratings, so their score reflects commute only.</p>
   </section>
 </main>
 
@@ -121,7 +130,8 @@
       <li>Prices are asking averages per district; renovated/penthouse stock near top schools trades above them, older stock below. Validate any shortlist with recent idealista comparables before offers.</li>
       <li>Green / bike / school-access / safety are editorial 1–5 scores derived from the research narrative, not official indices.</li>
       <li>Fee ranges are 2026 headline tuition; the 25–35% uplift for extras (enrolment, lunch, bus, uniforms, exams) is a rule of thumb.</li>
-      <li>Commute minutes are editorial door-to-door estimates (mixed mode, off-peak-ish), not routed times.</li>
+      <li>Commute minutes are editorial door-to-door estimates, not routed times. Bike times and all Danone HQ times were added July 2026 as editorial estimates — ride the shortlisted routes before deciding. Sant Cugat by bike crosses Collserola and Sitges crosses the Garraf; both are listed for honesty, not realism.</li>
+      <li>Lycée Français de Barcelone fees are editorial estimates (conventionné pricing) — verify the current fee schedule directly with the school.</li>
       <li>Maresme coast, Sitges/Castelldefels and other out-of-city €/m² figures are estimates — verify on idealista before trusting the budget filter there.</li>
       <li>Rent figures are rough 2026 asking estimates; Catalonia's rent-cap zoning distorts asking vs achievable — verify per listing.</li>
       <li>State schools are excluded by design; the comparison covers international and bilingual private options only.</li>

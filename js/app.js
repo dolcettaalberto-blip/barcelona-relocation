@@ -14,47 +14,70 @@
 
   /* ── Build the unified area list ─────────────────────────── */
   var AREAS = [];
+  function commuteFields(id) {
+    return {
+      commuteGlovoMixed: DATA.commuteMinutesToGlovo[id],
+      commuteGlovoBike: COMMUTE_EST.bikeToGlovo[id],
+      commuteDanoneMixed: COMMUTE_EST.mixedToDanone[id],
+      commuteDanoneBike: COMMUTE_EST.bikeToDanone[id]
+    };
+  }
   DATA.districts.forEach(function (d) {
-    AREAS.push(Object.assign({}, d, {
+    AREAS.push(Object.assign({}, d, commuteFields(d.id), {
       kind: "district",
       rent: DATA.monthlyRent150sqmEstimate[d.id],
-      commute: DATA.commuteMinutesToGlovo[d.id],
       estimated: false
     }));
   });
   DATA.suburbs.forEach(function (s) {
     var range = SUBURB_PRICE_EST[s.id];
     var mid = (range[0] + range[1]) / 2;
-    AREAS.push(Object.assign({}, s, {
+    AREAS.push(Object.assign({}, s, commuteFields(s.id), {
       kind: "suburb",
       pricePerSqm: Math.round(mid),
       priceRange: range,
       price150sqm: Math.round(mid * 150 / 5000) * 5000,
       rent: DATA.monthlyRent150sqmEstimate[s.id],
-      commute: DATA.commuteMinutesToGlovo[s.id],
       estimated: true
     }));
   });
   var AREA_BY_ID = {};
   AREAS.forEach(function (a) { AREA_BY_ID[a.id] = a; });
 
+  /* Commute in the currently selected mode (bike is the family's main mode). */
+  function commuteGlovo(a) { return state.mode === "bike" ? a.commuteGlovoBike : a.commuteGlovoMixed; }
+  function commuteDanone(a) { return state.mode === "bike" ? a.commuteDanoneBike : a.commuteDanoneMixed; }
+  function commuteAvg(a) { return (commuteGlovo(a) + commuteDanone(a)) / 2; }
+
   /* Composite fit score: weights school access and commute at 3 office
-     days/week. Suburbs have no editorial ratings → commute-only score. */
+     days/week, using the average of the two HQ commutes in the current mode.
+     Suburbs have no editorial ratings → commute-only score. */
   function composite(a) {
-    var weeklyHours = a.commute * 2 * OFFICE_DAYS / 60;
+    var weeklyHours = commuteAvg(a) * 2 * OFFICE_DAYS / 60;
     var penalty = weeklyHours * 1.2;
     if (a.kind === "district") {
       return 3 * a.schoolAccess + a.green + a.bike + a.safety - penalty;
     }
     return -penalty;
   }
-  AREAS.forEach(function (a) { a.composite = composite(a); });
+  /* Refresh mode-dependent per-area values (sort keys + score + halo colors). */
+  function refreshCommutes() {
+    AREAS.forEach(function (a) {
+      a.commuteGlovo = commuteGlovo(a);
+      a.commuteDanone = commuteDanone(a);
+      a.commuteMain = commuteAvg(a);
+      a.composite = composite(a);
+      if (a._halo) a._halo.setStyle({ color: bandColor(a.commuteMain) });
+      if (a._ring) a._ring.setStyle({ color: bandColor(a.commuteMain) });
+    });
+  }
 
   /* ── State ───────────────────────────────────────────────── */
   var state = {
     purchase: 900000,
     school: 18000,
     conservative: true,
+    mode: "bike",            // family's main commute mode
     selectedId: null,
     shortlist: readShortlistFromHash(),
     sort: { key: "composite", dir: -1 }
@@ -136,6 +159,15 @@
     '<p class="popup-name">Glovo HQ</p>' + GLOVO_HQ.address + "<br>Commute anchor · 3 office days/week"
   );
 
+  L.marker([DANONE_HQ.lat, DANONE_HQ.lng], {
+    icon: L.divIcon({ className: "", html: '<div class="hq-icon hq-danone" title="Danone HQ">D</div>', iconSize: [34, 34], iconAnchor: [17, 17] }),
+    zIndexOffset: 1000,
+    keyboard: true,
+    alt: "Danone HQ, Carrer de Buenos Aires 21"
+  }).addTo(map).bindPopup(
+    '<p class="popup-name">Danone HQ</p>' + DANONE_HQ.address + "<br>Second commute anchor"
+  );
+
   var bandLayer = L.layerGroup().addTo(map);
   var suburbLayer = L.layerGroup().addTo(map);
   var schoolLayer = L.layerGroup().addTo(map);
@@ -145,11 +177,11 @@
   AREAS.forEach(function (a) {
     // Commute-band halo ring (the "commute bands" layer — data-driven, no routing)
     var halo = L.circleMarker([a.lat, a.lng], {
-      radius: 19, weight: 4, color: bandColor(a.commute),
+      radius: 19, weight: 4, color: "#999",
       opacity: 0.55, fill: false, interactive: false
     });
     halo.addTo(bandLayer);
-    a._halo = halo;
+    a._halo = halo;   // color set by refreshCommutes()
 
     var marker = L.circleMarker([a.lat, a.lng], {
       radius: a.kind === "district" ? 13 : 11,
@@ -166,29 +198,33 @@
     if (a.kind === "suburb") {
       // dashed commute-ring hint around out-of-city areas
       var ring = L.circle([a.lat, a.lng], {
-        radius: 2500, weight: 1.5, color: bandColor(a.commute),
+        radius: 2500, weight: 1.5, color: "#999",
         dashArray: "6 6", fill: false, opacity: 0.5, interactive: false
       });
       ring.addTo(suburbLayer);
+      a._ring = ring;   // color set by refreshCommutes()
     }
     areaMarkers[a.id] = marker;
   });
 
   var schoolMarkers = [];
   DATA.schools.forEach(function (s) {
-    var glyph = s.type === "international" ? "▲" : "●";
+    var glyph = s.preferred ? "★" : (s.type === "international" ? "▲" : "●");
+    var cls = s.preferred ? "pref" : (s.type === "international" ? "intl" : "bili");
     var marker = L.marker([s.lat, s.lng], {
       icon: L.divIcon({
         className: "",
-        html: '<span class="school-pin ' + (s.type === "international" ? "intl" : "bili") + '">' + glyph + "</span>",
+        html: '<span class="school-pin ' + cls + '">' + glyph + "</span>",
         iconSize: [16, 16], iconAnchor: [8, 8]
       }),
+      zIndexOffset: s.preferred ? 500 : 0,
       keyboard: true,
       alt: s.name
     });
     marker.bindPopup(function () {
       var fee = annualFee(s);
       return '<p class="popup-name">' + s.name + "</p>" +
+        (s.preferred ? '<strong style="color:var(--gold)">★ Preferred school</strong><br>' : "") +
         s.curriculum + " · " + s.type + "<br>" +
         '<span class="popup-fee">' + feeText(s) + "</span><br>" +
         (s.notes ? s.notes + "<br>" : "") +
@@ -231,7 +267,7 @@
   function buildSection(tbody, list, heading) {
     tbody.innerHTML = "";
     var hr = document.createElement("tr");
-    hr.innerHTML = '<th class="section-head" colspan="12" scope="colgroup">' + heading + "</th>";
+    hr.innerHTML = '<th class="section-head" colspan="13" scope="colgroup">' + heading + "</th>";
     tbody.appendChild(hr);
 
     sortAreas(list).forEach(function (a) {
@@ -246,7 +282,8 @@
         '<td class="num" data-th="€/m²">' + eur(a.pricePerSqm) + "</td>" +
         '<td class="num" data-th="150 m² price">' + eur(a.price150sqm) + "</td>" +
         '<td class="num" data-th="Rent /mo">' + eur(a.rent) + "</td>" +
-        '<td class="num" data-th="Commute"><span class="commute-pill" style="background:' + bandColor(a.commute) + '">' + a.commute + "′</span></td>" +
+        '<td class="num" data-th="Glovo"><span class="commute-pill" style="background:' + bandColor(a.commuteGlovo) + '">' + a.commuteGlovo + "′</span></td>" +
+        '<td class="num" data-th="Danone"><span class="commute-pill" style="background:' + bandColor(a.commuteDanone) + '">' + a.commuteDanone + "′</span></td>" +
         '<td class="cell-vibe" data-th="Vibe">' + a.vibe + "</td>" +
         '<td class="num" data-th="Green">' + dots(a.green) + "</td>" +
         '<td class="num" data-th="Bike">' + dots(a.bike) + "</td>" +
@@ -334,7 +371,9 @@
       '<div class="stat"><span class="stat-label">€/m²' + (a.estimated ? " (est.)" : "") + '</span><span class="stat-value">' + eur(a.pricePerSqm) + "</span></div>" +
       '<div class="stat"><span class="stat-label">150 m² purchase</span><span class="stat-value ' + (fit ? "in" : "over") + '">' + eur(a.price150sqm) + "</span>" + estNote + "</div>" +
       '<div class="stat"><span class="stat-label">Rent 150 m² /mo</span><span class="stat-value">' + eur(a.rent) + "</span></div>" +
-      '<div class="stat"><span class="stat-label">Commute to Glovo</span><span class="stat-value" style="color:' + bandColor(a.commute) + '">' + a.commute + " min</span><span class=\"est-flag\">" + bandLabel(a.commute) + "</span></div>" +
+      '<div class="stat"><span class="stat-label">Avg commute (' + state.mode + ')</span><span class="stat-value" style="color:' + bandColor(a.commuteMain) + '">' + Math.round(a.commuteMain) + " min</span><span class=\"est-flag\">" + bandLabel(a.commuteMain) + "</span></div>" +
+      '<div class="stat"><span class="stat-label">' + (state.mode === "bike" ? "Bike" : "Mixed") + ' → Glovo</span><span class="stat-value" style="color:' + bandColor(a.commuteGlovo) + '">' + a.commuteGlovo + " min</span><span class=\"est-flag\">" + (state.mode === "bike" ? "mixed: " + a.commuteGlovoMixed : "bike: " + a.commuteGlovoBike) + " min</span></div>" +
+      '<div class="stat"><span class="stat-label">' + (state.mode === "bike" ? "Bike" : "Mixed") + ' → Danone</span><span class="stat-value" style="color:' + bandColor(a.commuteDanone) + '">' + a.commuteDanone + " min</span><span class=\"est-flag\">" + (state.mode === "bike" ? "mixed: " + a.commuteDanoneMixed : "bike: " + a.commuteDanoneBike) + " min</span></div>" +
       "</div>";
 
     if (a.kind === "district") {
@@ -350,7 +389,8 @@
         html += '<li><span class="s-name">' + item.unlisted + '</span><br><span class="s-meta">not fee-profiled in this dataset</span></li>';
       } else {
         var s = item.school, fee = annualFee(s);
-        html += '<li><span class="s-name">' + s.name + "</span>" +
+        html += '<li><span class="s-name">' + (s.preferred ? "★ " : "") + s.name + "</span>" +
+          (s.preferred ? '<span class="badge pref">preferred</span>' : "") +
           (fitsSchool(s) ? '<span class="badge fits">fits budget</span>' : '<span class="badge over">' + eur(fee) + "/yr</span>") +
           '<br><span class="s-meta">' + s.curriculum + " · " + feeText(s) + " · ~" + item.km.toFixed(1) + " km</span></li>";
       }
@@ -365,7 +405,7 @@
       '<label class="visually-hidden" for="sketch-school">School for cost sketch</label>' +
       '<select id="sketch-school">' +
       profiled.map(function (p, i) {
-        return '<option value="' + i + '">' + p.school.name + " (~" + p.km.toFixed(1) + " km)</option>";
+        return '<option value="' + i + '">' + (p.school.preferred ? "★ " : "") + p.school.name + " (~" + p.km.toFixed(1) + " km)</option>";
       }).join("") + "</select>" +
       '<div class="cost-cols" id="cost-cols"></div>' +
       '<p class="sketch-note">A sketch, not a financial model: buy = price + ~10% ITP/notary + 5 yrs primary tuition (' +
@@ -375,6 +415,10 @@
     panel.innerHTML = html;
 
     var select = panel.querySelector("#sketch-school");
+    // Default the sketch to the preferred school (Lycée Français) if profiled
+    for (var pi = 0; pi < profiled.length; pi++) {
+      if (profiled[pi].school.preferred) { select.value = String(pi); break; }
+    }
     function renderSketch() {
       var s = profiled[+select.value].school;
       var fee5 = (annualFee(s) || 0) * 5;
@@ -462,6 +506,20 @@
   btnCons.addEventListener("click", function () { setFeeMode(true); });
   btnOpt.addEventListener("click", function () { setFeeMode(false); });
 
+  var btnBike = document.getElementById("mode-bike");
+  var btnMixed = document.getElementById("mode-mixed");
+  function setMode(mode) {
+    state.mode = mode;
+    btnBike.setAttribute("aria-pressed", String(mode === "bike"));
+    btnMixed.setAttribute("aria-pressed", String(mode === "mixed"));
+    refreshCommutes();
+    buildTable();
+    if (state.selectedId) renderPanel();
+    render();
+  }
+  btnBike.addEventListener("click", function () { setMode("bike"); });
+  btnMixed.addEventListener("click", function () { setMode("mixed"); });
+
   /* ── Render: budget highlighting across all three views ─── */
   function render() {
     var fitCount = 0;
@@ -503,6 +561,7 @@
 
   /* ── Boot ────────────────────────────────────────────────── */
   document.querySelector('thead button[data-sort="composite"]').closest("th").setAttribute("aria-sort", "descending");
+  refreshCommutes();
   buildTable();
   renderPanel();
   render();

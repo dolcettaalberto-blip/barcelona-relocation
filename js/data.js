@@ -177,7 +177,8 @@ const DATA = {
     { "name": "Barcelona High School", "type": "international", "curriculum": "IB Diploma, English", "district": "eixample", "lat": 41.393, "lng": 2.162, "feesPrimary": [10000, 18000], "feesSecondary": [13000, 18000] },
     { "name": "English School Barcelona", "type": "bilingual", "curriculum": "Bilingual concertada", "district": "gracia", "lat": 41.405, "lng": 2.156, "feesPrimary": [6000, 12000], "feesSecondary": [6000, 12000] },
     { "name": "Hamelin-Laie Int'l", "type": "international", "curriculum": "IB, trilingual", "district": null, "lat": 41.492, "lng": 2.263, "feesPrimary": [11000, 15500], "feesSecondary": [14000, 18000], "notes": "Montgat, coastal commute from Sant Martí" },
-    { "name": "SEK Catalunya", "type": "international", "curriculum": "IB", "district": null, "lat": 41.611, "lng": 2.288, "feesPrimary": [11000, 15500], "feesSecondary": [14000, 18000], "notes": "La Garriga, far; realistic only with bus" }
+    { "name": "SEK Catalunya", "type": "international", "curriculum": "IB", "district": null, "lat": 41.611, "lng": 2.288, "feesPrimary": [11000, 15500], "feesSecondary": [14000, 18000], "notes": "La Garriga, far; realistic only with bus" },
+    { "name": "Lycée Français de Barcelone", "type": "international", "curriculum": "French homologué, FR + ES/CA", "district": "lescorts", "lat": 41.390, "lng": 2.106, "feesPrimary": [5500, 7000], "feesSecondary": [6000, 8500], "preferred": true, "notes": "Preferred school (Bosch i Gimpera, Pedralbes). Fees are editorial estimates — conventionné, far cheaper than Anglo internationals; verify current schedule." }
   ],
   "feeBands": {
     "premiumAngloAmerican": { "primary": [16000, 22000], "secondary": [22000, 28000] },
@@ -201,3 +202,27 @@ const SUBURB_PRICE_EST = {
 };
 
 const GLOVO_HQ = { name: "Glovo HQ", address: "Carrer de Pallars 190, Poblenou", lat: 41.3986, lng: 2.1957 };
+const DANONE_HQ = { name: "Danone HQ", address: "Carrer de Buenos Aires 21, near Francesc Macià", lat: 41.3922, lng: 2.1409 };
+
+// Editorial door-to-door commute estimates (minutes), added July 2026 at the
+// user's request. Bike is the family's main mode. Same status as the brief's
+// commuteMinutesToGlovo: estimates, not routed times — verify the shortlist
+// by actually riding them. Sant Cugat by bike crosses Collserola; Sitges by
+// bike crosses the Garraf — both listed for honesty, not realism.
+const COMMUTE_EST = {
+  "bikeToGlovo": {
+    "santmarti": 5, "eixample": 15, "gracia": 20, "santandreu": 20,
+    "sants": 30, "horta": 30, "noubarris": 30, "sarria": 35, "lescorts": 35,
+    "santjust": 45, "alella": 50, "castelldefels": 70, "santcugat": 75, "sitges": 105
+  },
+  "mixedToDanone": {
+    "lescorts": 10, "eixample": 12, "sarria": 15, "sants": 15, "gracia": 18,
+    "santjust": 18, "santmarti": 25, "horta": 30, "santandreu": 30,
+    "noubarris": 32, "santcugat": 32, "castelldefels": 40, "sitges": 48, "alella": 50
+  },
+  "bikeToDanone": {
+    "lescorts": 10, "eixample": 12, "sarria": 15, "sants": 15, "gracia": 18,
+    "santjust": 25, "santmarti": 25, "horta": 30, "santandreu": 32,
+    "noubarris": 35, "castelldefels": 55, "santcugat": 65, "alella": 65, "sitges": 95
+  }
+};
