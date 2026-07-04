@@ -25,7 +25,7 @@
     </svg>
     <div>
       <h1>Barcelona Family Relocation Explorer</h1>
-      <p class="tagline">150 m² · one school-age child · anchors: Glovo HQ (Poblenou) + Danone HQ (Francesc Macià) · bike-first · 3 office days/week</p>
+      <p class="tagline">150 m² · two kids · anchors: Glovo HQ (Poblenou) + Danone HQ (Francesc Macià) · bike-first · 3 office days/week</p>
     </div>
   </div>
 </header>
@@ -37,8 +37,8 @@
       <input type="range" id="budget-purchase" min="400000" max="1200000" step="10000" value="900000">
     </div>
     <div class="control slider-control">
-      <label for="budget-school">School budget / year <output id="budget-school-out" for="budget-school">€18,000</output></label>
-      <input type="range" id="budget-school" min="6000" max="30000" step="500" value="18000">
+      <label for="budget-school">School budget / year, 2 kids <output id="budget-school-out" for="budget-school">€20,000</output></label>
+      <input type="range" id="budget-school" min="6000" max="60000" step="500" value="20000">
     </div>
     <div class="control commute-mode">
       <span class="control-caption" id="commute-mode-caption">Commute mode</span>
@@ -60,6 +60,8 @@
         <label><input type="checkbox" id="layer-schools" checked> Schools</label>
         <label><input type="checkbox" id="layer-suburbs" checked> Out-of-city</label>
         <label><input type="checkbox" id="layer-bands" checked> Commute bands</label>
+        <label title="Visible from zoom 12"><input type="checkbox" id="layer-stations" checked> Metro/rail</label>
+        <label title="Visible from zoom 13 — zoom in"><input type="checkbox" id="layer-playgrounds" checked> Playgrounds</label>
       </div>
     </div>
     <p class="fit-count" id="fit-count" role="status" aria-live="polite"></p>
@@ -87,6 +89,12 @@
           <span class="school-key pref"><span class="key-pin pref"></span> preferred</span>
           <span class="school-key intl"><span class="key-pin intl"></span> international</span>
           <span class="school-key bili"><span class="key-pin bili"></span> bilingual</span>
+        </div>
+        <div class="legend-block">
+          <span class="legend-title">Getting around (zoom in)</span>
+          <span class="school-key"><span class="station-key metro">M</span> metro</span>
+          <span class="school-key"><span class="station-key rail">R</span> rail/FGC</span>
+          <span class="school-key"><span class="play-key"></span> playground</span>
         </div>
       </div>
     </div>
@@ -132,6 +140,8 @@
       <li>Fee ranges are 2026 headline tuition; the 25–35% uplift for extras (enrolment, lunch, bus, uniforms, exams) is a rule of thumb.</li>
       <li>Commute minutes are editorial door-to-door estimates, not routed times. Bike times and all Danone HQ times were added July 2026 as editorial estimates — ride the shortlisted routes before deciding. Sant Cugat by bike crosses Collserola and Sitges crosses the Garraf; both are listed for honesty, not realism.</li>
       <li>Lycée Français de Barcelone fees are editorial estimates (conventionné pricing) — verify the current fee schedule directly with the school.</li>
+      <li>School budget and 5-year sketches count tuition for two children (both assumed school-age at the same fee band).</li>
+      <li>Playgrounds and metro/rail stations are a one-off OpenStreetMap extract (July 2026) — completeness varies by municipality.</li>
       <li>Maresme coast, Sitges/Castelldefels and other out-of-city €/m² figures are estimates — verify on idealista before trusting the budget filter there.</li>
       <li>Rent figures are rough 2026 asking estimates; Catalonia's rent-cap zoning distorts asking vs achievable — verify per listing.</li>
       <li>State schools are excluded by design; the comparison covers international and bilingual private options only.</li>
@@ -141,6 +151,7 @@
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/data.js"></script>
+<script src="js/poi-data.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

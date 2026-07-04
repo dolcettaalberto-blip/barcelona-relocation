@@ -25,6 +25,16 @@ estimates). Update by editing that file — there are no runtime fetches and no
 API keys. Out-of-city €/m² figures are editorial estimate ranges
 (`SUBURB_PRICE_EST`) flagged with `~` in the UI; verify on idealista.
 
+## POI data (playgrounds, metro/rail)
+
+`js/poi-data.js` is a one-off OpenStreetMap extract (Overpass, July 2026).
+Refresh it by re-running against `https://overpass.kumi.systems/api/interpreter`:
+
+```
+(node["leisure"="playground"](41.21,1.75,41.53,2.35);way["leisure"="playground"](41.21,1.75,41.53,2.35););out center;
+(node["railway"="station"](41.21,1.75,41.53,2.35);node["railway"="halt"](41.21,1.75,41.53,2.35););out;
+```
+
 ## Notes
 
 - Shortlist state persists in the URL hash (`#shortlist=sarria,gracia`) —

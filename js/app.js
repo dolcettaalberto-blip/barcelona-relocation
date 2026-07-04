@@ -5,6 +5,7 @@
 
   var REDUCED_MOTION = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var OFFICE_DAYS = 3;
+  var KIDS = 2;                   // school fees are compared and sketched ×2
   var HIDDEN_COST_UPLIFT = 1.3;   // top-of-range +30% = conservative fee basis
   var TRANSACTION_COSTS = 1.10;   // purchase + ~10% ITP/notary
 
@@ -75,7 +76,7 @@
   /* ── State ───────────────────────────────────────────────── */
   var state = {
     purchase: 900000,
-    school: 18000,
+    school: 20000,
     conservative: true,
     mode: "bike",            // family's main commute mode
     selectedId: null,
@@ -102,7 +103,8 @@
       : school.feesPrimary[0];
   }
   function fitsArea(a) { return a.price150sqm <= state.purchase; }
-  function fitsSchool(s) { return annualFee(s) !== null && annualFee(s) <= state.school; }
+  /* annualFee() is per child; the budget slider is the family total for both kids. */
+  function fitsSchool(s) { return annualFee(s) !== null && annualFee(s) * KIDS <= state.school; }
 
   function bandColor(min) {
     return min <= 20 ? "#2e7d6b" : min <= 40 ? "#c07f14" : "#b04a3a";
@@ -173,6 +175,43 @@
   var schoolLayer = L.layerGroup().addTo(map);
   var districtLayer = L.layerGroup().addTo(map);
 
+  /* Playgrounds (2000+ points) go on a shared canvas; stations are divIcons.
+     Both are zoom-gated so they don't blanket the regional view. */
+  var poiCanvas = L.canvas({ padding: 0.3 });
+  var playgroundLayer = L.layerGroup();
+  PLAYGROUNDS.forEach(function (p) {
+    L.circleMarker(p, {
+      renderer: poiCanvas, radius: 3, weight: 1, color: "#fff",
+      fillColor: "#3fa34d", fillOpacity: 0.85, interactive: false
+    }).addTo(playgroundLayer);
+  });
+  var stationLayer = L.layerGroup();
+  STATIONS.forEach(function (s) {
+    L.marker([s[0], s[1]], {
+      icon: L.divIcon({
+        className: "",
+        html: '<span class="station-ic ' + (s[3] === "m" ? "metro" : "rail") + '">' + (s[3] === "m" ? "M" : "R") + "</span>",
+        iconSize: [14, 14], iconAnchor: [7, 7]
+      }),
+      keyboard: false,
+      alt: s[2]
+    }).bindTooltip(s[2], { direction: "top", offset: [0, -8] }).addTo(stationLayer);
+  });
+
+  var POI_MIN_ZOOM = { stations: 12, playgrounds: 13 };
+  function updatePoiLayers() {
+    var z = map.getZoom();
+    var wantStations = document.getElementById("layer-stations").checked && z >= POI_MIN_ZOOM.stations;
+    var wantPlay = document.getElementById("layer-playgrounds").checked && z >= POI_MIN_ZOOM.playgrounds;
+    if (wantStations && !map.hasLayer(stationLayer)) map.addLayer(stationLayer);
+    if (!wantStations && map.hasLayer(stationLayer)) map.removeLayer(stationLayer);
+    if (wantPlay && !map.hasLayer(playgroundLayer)) map.addLayer(playgroundLayer);
+    if (!wantPlay && map.hasLayer(playgroundLayer)) map.removeLayer(playgroundLayer);
+  }
+  map.on("zoomend", updatePoiLayers);
+  document.getElementById("layer-stations").addEventListener("change", updatePoiLayers);
+  document.getElementById("layer-playgrounds").addEventListener("change", updatePoiLayers);
+
   var areaMarkers = {};
   AREAS.forEach(function (a) {
     // Commute-band halo ring (the "commute bands" layer — data-driven, no routing)
@@ -228,7 +267,7 @@
         s.curriculum + " · " + s.type + "<br>" +
         '<span class="popup-fee">' + feeText(s) + "</span><br>" +
         (s.notes ? s.notes + "<br>" : "") +
-        (fee !== null ? "Budget basis: " + eur(fee) + "/yr (" + (state.conservative ? "conservative" : "optimistic") + ")<br>" : "") +
+        (fee !== null ? "Budget basis: " + eur(fee) + "/yr per child · " + eur(fee * KIDS) + " for both (" + (state.conservative ? "conservative" : "optimistic") + ")<br>" : "") +
         '<span class="popup-verify">Map position approximate — verify address before visiting.</span>';
     });
     marker.addTo(schoolLayer);
@@ -391,7 +430,7 @@
         var s = item.school, fee = annualFee(s);
         html += '<li><span class="s-name">' + (s.preferred ? "★ " : "") + s.name + "</span>" +
           (s.preferred ? '<span class="badge pref">preferred</span>' : "") +
-          (fitsSchool(s) ? '<span class="badge fits">fits budget</span>' : '<span class="badge over">' + eur(fee) + "/yr</span>") +
+          (fitsSchool(s) ? '<span class="badge fits">fits budget</span>' : '<span class="badge over">' + eur(fee * KIDS) + "/yr ×2</span>") +
           '<br><span class="s-meta">' + s.curriculum + " · " + feeText(s) + " · ~" + item.km.toFixed(1) + " km</span></li>";
       }
     });
@@ -408,7 +447,7 @@
         return '<option value="' + i + '">' + (p.school.preferred ? "★ " : "") + p.school.name + " (~" + p.km.toFixed(1) + " km)</option>";
       }).join("") + "</select>" +
       '<div class="cost-cols" id="cost-cols"></div>' +
-      '<p class="sketch-note">A sketch, not a financial model: buy = price + ~10% ITP/notary + 5 yrs primary tuition (' +
+      '<p class="sketch-note">A sketch, not a financial model: buy = price + ~10% ITP/notary + 5 yrs primary tuition for two kids (' +
       (state.conservative ? "top of range +30% extras" : "bottom of range, no uplift") +
       "); rent = 60 months + same tuition. No mortgage, no appreciation.</p></div>";
 
@@ -421,14 +460,14 @@
     }
     function renderSketch() {
       var s = profiled[+select.value].school;
-      var fee5 = (annualFee(s) || 0) * 5;
+      var fee5 = (annualFee(s) || 0) * 5 * KIDS;
       var buy = a.price150sqm * TRANSACTION_COSTS + fee5;
       var rent = a.rent * 60 + fee5;
       panel.querySelector("#cost-cols").innerHTML =
         '<div class="cost-col"><span class="cost-title">Buy</span><p class="cost-total">' + eur(buy) + '</p>' +
-        '<span class="cost-breakdown">' + eur(a.price150sqm) + " +10% costs + " + eur(fee5) + " school</span></div>" +
+        '<span class="cost-breakdown">' + eur(a.price150sqm) + " +10% costs + " + eur(fee5) + " school ×2 kids</span></div>" +
         '<div class="cost-col"><span class="cost-title">Rent</span><p class="cost-total">' + eur(rent) + '</p>' +
-        '<span class="cost-breakdown">' + eur(a.rent) + " × 60 mo + " + eur(fee5) + " school</span></div>";
+        '<span class="cost-breakdown">' + eur(a.rent) + " × 60 mo + " + eur(fee5) + " school ×2 kids</span></div>";
     }
     select.addEventListener("change", renderSketch);
     renderSketch();
