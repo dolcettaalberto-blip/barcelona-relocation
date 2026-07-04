@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Barcelona Family Relocation Explorer</title>
+<meta name="description" content="Decision-support tool: compare Barcelona areas on price, rent, schools, commute to Glovo HQ and family livability.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='9,2 23,2 30,9 30,23 23,30 9,30 2,23 2,9' fill='%231F47C4'/%3E%3C/svg%3E">
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <svg class="panot" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+      <polygon points="11,1 29,1 39,11 39,29 29,39 11,39 1,29 1,11" fill="none" stroke="currentColor" stroke-width="2"/>
+      <g fill="currentColor">
+        <circle cx="20" cy="13" r="4.2"/><circle cx="20" cy="27" r="4.2"/>
+        <circle cx="13" cy="20" r="4.2"/><circle cx="27" cy="20" r="4.2"/>
+      </g>
+    </svg>
+    <div>
+      <h1>Barcelona Family Relocation Explorer</h1>
+      <p class="tagline">150 m² · one school-age child · anchor: Glovo HQ, Poblenou · 3 office days/week</p>
+    </div>
+  </div>
+</header>
+
+<section class="controls" aria-label="Budget filters and map layers">
+  <div class="wrap controls-inner">
+    <div class="control slider-control">
+      <label for="budget-purchase">Purchase budget <output id="budget-purchase-out" for="budget-purchase">€900,000</output></label>
+      <input type="range" id="budget-purchase" min="400000" max="1200000" step="10000" value="900000">
+    </div>
+    <div class="control slider-control">
+      <label for="budget-school">School budget / year <output id="budget-school-out" for="budget-school">€18,000</output></label>
+      <input type="range" id="budget-school" min="6000" max="30000" step="500" value="18000">
+    </div>
+    <div class="control fee-mode">
+      <span class="control-caption" id="fee-mode-caption">School fee basis</span>
+      <div class="seg" role="group" aria-labelledby="fee-mode-caption">
+        <button type="button" id="fee-conservative" class="seg-btn" aria-pressed="true" title="Top of fee range + 30% hidden-cost uplift">Conservative</button>
+        <button type="button" id="fee-optimistic" class="seg-btn" aria-pressed="false" title="Bottom of fee range, no uplift">Optimistic</button>
+      </div>
+    </div>
+    <div class="control layers">
+      <span class="control-caption">Map layers</span>
+      <div class="layer-checks">
+        <label><input type="checkbox" id="layer-schools" checked> Schools</label>
+        <label><input type="checkbox" id="layer-suburbs" checked> Out-of-city</label>
+        <label><input type="checkbox" id="layer-bands" checked> Commute bands</label>
+      </div>
+    </div>
+    <p class="fit-count" id="fit-count" role="status" aria-live="polite"></p>
+  </div>
+</section>
+
+<main>
+  <section class="map-section wrap" aria-label="Map">
+    <div class="map-frame cham">
+      <div id="map" tabindex="0" aria-label="Map of greater Barcelona with area, school and commute markers"></div>
+      <div class="legend" aria-hidden="false">
+        <div class="legend-block">
+          <span class="legend-title">€/m²</span>
+          <span class="price-ramp" aria-hidden="true"></span>
+          <span class="ramp-labels"><span>€3.2k</span><span>€6.3k</span></span>
+        </div>
+        <div class="legend-block">
+          <span class="legend-title">Commute to Glovo</span>
+          <span class="band-chip band-1">≤20 min</span>
+          <span class="band-chip band-2">21–40</span>
+          <span class="band-chip band-3">&gt;40</span>
+        </div>
+        <div class="legend-block">
+          <span class="legend-title">Schools</span>
+          <span class="school-key intl">▲ international</span>
+          <span class="school-key bili">● bilingual</span>
+        </div>
+      </div>
+    </div>
+    <aside id="panel" class="panel cham" aria-label="Area profile" hidden></aside>
+  </section>
+
+  <section class="table-section wrap" aria-label="Compare areas">
+    <h2>Compare areas</h2>
+    <p class="table-hint">Click a column to sort · click a row to fly the map there · ★ to shortlist (saved in the URL, shareable)</p>
+    <div class="table-scroll">
+      <table id="compare">
+        <thead>
+          <tr>
+            <th scope="col" class="th-star"><span class="visually-hidden">Shortlist</span></th>
+            <th scope="col"><button type="button" data-sort="name">Area</button></th>
+            <th scope="col" class="num"><button type="button" data-sort="pricePerSqm">€/m²</button></th>
+            <th scope="col" class="num"><button type="button" data-sort="price150sqm">150 m² price</button></th>
+            <th scope="col" class="num"><button type="button" data-sort="rent">Rent /mo</button></th>
+            <th scope="col" class="num"><button type="button" data-sort="commute">Commute</button></th>
+            <th scope="col">Vibe</th>
+            <th scope="col" class="num"><button type="button" data-sort="green">Green</button></th>
+            <th scope="col" class="num"><button type="button" data-sort="bike">Bike</button></th>
+            <th scope="col" class="num"><button type="button" data-sort="schoolAccess">Schools</button></th>
+            <th scope="col" class="num"><button type="button" data-sort="composite">Fit score</button></th>
+            <th scope="col">Notes</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-districts"></tbody>
+        <tbody id="tbody-suburbs"></tbody>
+      </table>
+    </div>
+    <p class="table-footnote">Fit score = school access ×3 + green + bike + safety − weekly commute hours (round trips, 3 office days) ×1.2. Higher is better. Out-of-city areas carry no editorial ratings, so their score reflects commute only.</p>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p><strong>Data as of June 2026, asking prices.</strong> Compiled from idealista district averages (May 2026), city cycling/parks data and school fee schedules. Asking prices, not closed prices.</p>
+    <ul>
+      <li>Prices are asking averages per district; renovated/penthouse stock near top schools trades above them, older stock below. Validate any shortlist with recent idealista comparables before offers.</li>
+      <li>Green / bike / school-access / safety are editorial 1–5 scores derived from the research narrative, not official indices.</li>
+      <li>Fee ranges are 2026 headline tuition; the 25–35% uplift for extras (enrolment, lunch, bus, uniforms, exams) is a rule of thumb.</li>
+      <li>Commute minutes are editorial door-to-door estimates (mixed mode, off-peak-ish), not routed times.</li>
+      <li>Maresme coast, Sitges/Castelldefels and other out-of-city €/m² figures are estimates — verify on idealista before trusting the budget filter there.</li>
+      <li>Rent figures are rough 2026 asking estimates; Catalonia's rent-cap zoning distorts asking vs achievable — verify per listing.</li>
+      <li>State schools are excluded by design; the comparison covers international and bilingual private options only.</li>
+    </ul>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
