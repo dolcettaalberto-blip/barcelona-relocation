@@ -204,6 +204,24 @@ const SUBURB_PRICE_EST = {
 const GLOVO_HQ = { name: "Glovo HQ", address: "Carrer de Pallars 190, Poblenou", lat: 41.3986, lng: 2.1957 };
 const DANONE_HQ = { name: "Danone HQ", address: "Carrer de Buenos Aires 21, near Francesc Macià", lat: 41.3922, lng: 2.1409 };
 
+// Other major tech employers with a Barcelona presence, for job-market context
+// beyond the two commute anchors. District-level editorial approximations —
+// not verified street addresses — added September 2026; confirm before relying
+// on them for job search or commute planning.
+const TECH_EMPLOYERS = [
+  { name: "Amazon (Barcelona Tech Hub)", lat: 41.4025, lng: 2.1905, note: "22@ / Poblenou — AWS & dev hub" },
+  { name: "Meta", lat: 41.4038, lng: 2.1899, note: "Near Torre Glòries" },
+  { name: "Microsoft Ibérica", lat: 41.3928, lng: 2.1395, note: "Diagonal, near Danone HQ" },
+  { name: "SAP Labs Barcelona", lat: 41.4032, lng: 2.1985, note: "22@ — one of SAP's largest R&D hubs" },
+  { name: "Cisco", lat: 41.4041, lng: 2.1962, note: "22@ / Poblenou" },
+  { name: "HP Inc. (EMEA hub)", lat: 41.4738, lng: 2.0751, note: "Sant Cugat del Vallès campus" },
+  { name: "King (Activision Blizzard/Microsoft)", lat: 41.4098, lng: 2.2158, note: "Diagonal Mar studio" },
+  { name: "TravelPerk", lat: 41.4012, lng: 2.1898, note: "Barcelona-founded travel-tech unicorn, 22@" },
+  { name: "Typeform", lat: 41.4001, lng: 2.1932, note: "Barcelona-founded, 22@" },
+  { name: "Factorial", lat: 41.4022, lng: 2.1955, note: "Barcelona-founded HR-tech unicorn, 22@" },
+  { name: "Adyen", lat: 41.4035, lng: 2.1992, note: "22@ / Poblenou" }
+];
+
 // Editorial door-to-door commute estimates (minutes), added July 2026 at the
 // user's request. Bike is the family's main mode. Same status as the brief's
 // commuteMinutesToGlovo: estimates, not routed times — verify the shortlist

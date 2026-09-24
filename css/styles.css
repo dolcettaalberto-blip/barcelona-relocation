@@ -18,6 +18,7 @@
   --band-2: #c07f14;   /* 21–40 */
   --band-3: #b04a3a;   /* >40 */
   --fit: #2e7d6b;
+  --tech: #7c4fb0;
   --cham: 12px;
   --display: "Fraunces", Georgia, serif;
   --body: system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -224,6 +225,19 @@ input[type="range"]:focus-visible { outline: 3px solid var(--accent); outline-of
   display: inline-block; width: 9px; height: 9px; border-radius: 50%;
   background: #3fa34d; border: 1.5px solid #fff; box-shadow: 0 0 0 1px #3fa34d;
   vertical-align: -1px;
+}
+/* Tech employers: small violet diamonds, distinct from HQ/school/transit glyphs */
+.tech-badge {
+  width: 16px; height: 16px;
+  background: var(--tech);
+  border: 1.5px solid #fff;
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+  box-shadow: 0 0 0 1px var(--tech);
+}
+.tech-key {
+  display: inline-block; width: 9px; height: 9px; vertical-align: -1px;
+  background: var(--tech); border: 1.5px solid #fff; box-shadow: 0 0 0 1px var(--tech);
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 .leaflet-container { font-family: var(--body); }
 .leaflet-popup-content-wrapper { border-radius: 0; clip-path: polygon(8px 0, calc(100% - 8px) 0, 100% 8px, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px), 0 8px); background: var(--card); color: var(--ink); }
