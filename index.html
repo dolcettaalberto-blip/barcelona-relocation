@@ -62,6 +62,7 @@
         <label><input type="checkbox" id="layer-bands" checked> Commute bands</label>
         <label title="Visible from zoom 12"><input type="checkbox" id="layer-stations" checked> Metro/rail</label>
         <label title="Visible from zoom 13 — zoom in"><input type="checkbox" id="layer-playgrounds" checked> Playgrounds</label>
+        <label><input type="checkbox" id="layer-tech" checked> Tech employers</label>
       </div>
     </div>
     <p class="fit-count" id="fit-count" role="status" aria-live="polite"></p>
@@ -95,6 +96,10 @@
           <span class="school-key"><span class="station-key metro">M</span> metro</span>
           <span class="school-key"><span class="station-key rail">R</span> rail/FGC</span>
           <span class="school-key"><span class="play-key"></span> playground</span>
+        </div>
+        <div class="legend-block">
+          <span class="legend-title">Tech employers</span>
+          <span class="school-key"><span class="tech-key"></span> major office (approx.)</span>
         </div>
       </div>
     </div>
@@ -142,6 +147,7 @@
       <li>Lycée Français de Barcelone fees are editorial estimates (conventionné pricing) — verify the current fee schedule directly with the school.</li>
       <li>School budget and 5-year sketches count tuition for two children (both assumed school-age at the same fee band).</li>
       <li>Playgrounds and metro/rail stations are a one-off OpenStreetMap extract (July 2026) — completeness varies by municipality.</li>
+      <li>Tech employer pins (added September 2026) are a curated, district-level approximation of major Barcelona offices — not verified street addresses. Confirm before relying on them for job-hunting or commute planning.</li>
       <li>Maresme coast, Sitges/Castelldefels and other out-of-city €/m² figures are estimates — verify on idealista before trusting the budget filter there.</li>
       <li>Rent figures are rough 2026 asking estimates; Catalonia's rent-cap zoning distorts asking vs achievable — verify per listing.</li>
       <li>State schools are excluded by design; the comparison covers international and bilingual private options only.</li>

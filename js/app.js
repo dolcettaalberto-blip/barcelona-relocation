@@ -212,6 +212,21 @@
   document.getElementById("layer-stations").addEventListener("change", updatePoiLayers);
   document.getElementById("layer-playgrounds").addEventListener("change", updatePoiLayers);
 
+  /* Top tech employers — job-market context beyond the two commute anchors. */
+  var techLayer = L.layerGroup().addTo(map);
+  TECH_EMPLOYERS.forEach(function (t) {
+    L.marker([t.lat, t.lng], {
+      icon: L.divIcon({ className: "", html: '<div class="tech-badge"></div>', iconSize: [16, 16], iconAnchor: [8, 8] }),
+      keyboard: true,
+      alt: t.name
+    }).bindPopup(
+      '<p class="popup-name">' + t.name + "</p>" +
+      (t.note ? t.note + "<br>" : "") +
+      '<span class="popup-verify">Approximate, district-level location — verify current office address.</span>'
+    ).bindTooltip(t.name, { direction: "top", offset: [0, -8] })
+      .addTo(techLayer);
+  });
+
   var areaMarkers = {};
   AREAS.forEach(function (a) {
     // Commute-band halo ring (the "commute bands" layer — data-driven, no routing)
@@ -518,6 +533,7 @@
   bindLayer("layer-schools", schoolLayer);
   bindLayer("layer-suburbs", suburbLayer);
   bindLayer("layer-bands", bandLayer);
+  bindLayer("layer-tech", techLayer);
 
   /* ── Budget controls ─────────────────────────────────────── */
   var purchaseInput = document.getElementById("budget-purchase");
